@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Details</title>
+    <link rel="preload" href="../styles.css" as="style">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+    <!-- Monetag Interstitial Ad Script -->
+    <script src='//whephiwums.com/sdk.js' data-zone='9227546' data-sdk='show_9227546'></script>
+    <script>
+        // Ensure ad plays regardless of how the page is accessed (direct URL, bookmark, etc.)
+        window.addEventListener('load', function() {
+            if (typeof show_9227546 === 'function') {
+                show_9227546({ 
+                    type: 'inApp', 
+                    inAppSettings: { 
+                        frequency: 1, 
+                        capping: 0.1, 
+                        interval: 30, 
+                        timeout: 5, 
+                        everyPage: true 
+                    } 
+                });
+            }
+        });
+    </script>
+
+    <style>
+        .pdf-details {
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: #1f2c38;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .pdf-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #2c3e50;
+            padding-bottom: 15px;
+        }
+        
+        .pdf-icon-large {
+            font-size: 48px;
+            color: #4eaef3;
+            margin-right: 20px;
+        }
+        
+        .pdf-title-container h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            color: #fff;
+        }
+        
+        .pdf-meta {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+        
+        .pdf-author, .pdf-category {
+            margin-bottom: 10px;
+        }
+        
+        .pdf-description {
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #a3acb8;
+        }
+        
+        .download-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .back-button {
+            display: inline-block;
+            margin-top: 20px;
+            color: #a3acb8;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        
+        .back-button:hover {
+            color: #4eaef3;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px 0;
+        }
+        
+        .loading .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(78, 174, 243, 0.3);
+            border-top-color: #4eaef3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .pdf-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .pdf-icon-large {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            .pdf-meta {
+                flex-direction: column;
+            }
+            
+            .pdf-meta > div {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="logo">
+                <a href="../index.html">PDF Pusthakalaya</a>
+            </div>
+            <div class="menu-icon" id="menu-icon">
+                <div class="bar1"></div>
+                <div class="bar2"></div>
+                <div class="bar3"></div>
+            </div>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="../index.html">Home</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="pdf-details" id="pdf-details">
+            <!-- Content will be loaded by JavaScript -->
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading PDF details...</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 PDF Search & Download. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // First load all PDF data from all pages to have it available
+        const allPdfData = [];
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Get PDF ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const pdfId = urlParams.get('id');
+            
+            if (!pdfId) {
+                displayError("No PDF ID provided.");
+                return;
+            }
+            
+            try {
+                // First, try to load from search index (more efficient)
+                try {
+                    const response = await fetch('../search_index.json');
+                    if (response.ok) {
+                        const searchIndexData = await response.json();
+                        
+                        // Get index from pdfId if it's using the new format (pdf_123)
+                        const newFormatMatch = pdfId.match(/pdf_(\d+)/);
+                        if (newFormatMatch) {
+                            const index = parseInt(newFormatMatch[1]);
+                            if (index >= 0 && index < searchIndexData.length) {
+                                const foundPdf = searchIndexData[index];
+                                if (foundPdf) {
+                                    displayPdfDetails(foundPdf);
+                                    document.title = `${foundPdf.title} - PDF Details`;
+                                    return;
+                                }
+                            }
+                        }
+                        
+                        // If index not found or not in range, try to find by ID
+                        const foundPdf = searchIndexData.find(pdf => pdf.id === pdfId);
+                        if (foundPdf) {
+                            displayPdfDetails(foundPdf);
+                            document.title = `${foundPdf.title} - PDF Details`;
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading search index:', error);
+                }
+                
+                // If search index approach didn't work, try the old method
+                // Extract the page and index from the ID (format: pdf_p1_i0)
+                let pageNum, indexNum;
+                const idMatch = pdfId.match(/pdf_p(\d+)_i(\d+)/);
+                
+                if (idMatch) {
+                    pageNum = parseInt(idMatch[1]);
+                    indexNum = parseInt(idMatch[2]);
+                    
+                    // Load the specific page
+                    try {
+                        const response = await fetch(`../data/page${pageNum}.json`);
+                        if (!response.ok) {
+                            throw new Error(`Failed to load page ${pageNum}`);
+                        }
+                        
+                        const pageData = await response.json();
+                        // Get the PDF at the specific index
+                        const foundPdf = pageData[indexNum];
+                        
+                        if (foundPdf) {
+                            displayPdfDetails(foundPdf);
+                            document.title = `${foundPdf.title} - PDF Details`;
+                            return;
+                        }
+                    } catch (error) {
+                        console.error(`Error loading specific page ${pageNum}:`, error);
+                    }
+                }
+                
+                // Final fallback: try loading all pages
+                let page = 1;
+                let foundPdf = null;
+                
+                while (page <= 46 && !foundPdf) {
+                    try {
+                        const response = await fetch(`../data/page${page}.json`);
+                        if (!response.ok) {
+                            throw new Error(`Failed to load page ${page}`);
+                        }
+                        
+                        const pageData = await response.json();
+                        
+                        // Process data and check for ID
+                        for (let idx = 0; idx < pageData.length; idx++) {
+                            const pdf = pageData[idx];
+                            const pdfIdToCheck = pdf.id || `pdf_p${page}_i${idx}`;
+                            
+                            if (pdfIdToCheck === pdfId) {
+                                displayPdfDetails(pdf);
+                                document.title = `${pdf.title} - PDF Details`;
+                                foundPdf = pdf;
+                                break;
+                            }
+                        }
+                        
+                        if (foundPdf) break;
+                        page++;
+                    } catch (error) {
+                        console.error(`Error loading page ${page}:`, error);
+                        page++;
+                    }
+                }
+                
+                if (!foundPdf) {
+                    displayError("PDF not found. Try going back to the homepage.");
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                displayError("An error occurred while loading the PDF details.");
+            }
+        });
+        
+        function displayPdfDetails(pdf) {
+            const detailsContainer = document.getElementById('pdf-details');
+            
+            detailsContainer.innerHTML = `
+                <div class="pdf-header">
+                    <i class="fas fa-file-pdf pdf-icon-large"></i>
+                    <div class="pdf-title-container">
+                        <h1>${pdf.title}</h1>
+                    </div>
+                </div>
+                
+                <div class="pdf-meta">
+                    <div class="pdf-author">
+                        <strong>Author:</strong> ${pdf.author || 'Unknown Author'}
+                    </div>
+                    <div class="pdf-category">
+                        <strong>Category:</strong> ${pdf.category || 'Uncategorized'}
+                    </div>
+                </div>
+                
+                <div class="pdf-description">
+                    <h3>Description:</h3>
+                    <p>${pdf.description || 'No description available.'}</p>
+                </div>
+                
+                <div class="download-section">
+                    <a href="${pdf.link}" class="download-btn" target="_blank">
+                        <i class="fas fa-download"></i> Download from Telegram
+                    </a>
+                </div>
+                
+                <div style="text-align: center;">
+                    <a href="../index.html" class="back-button">
+                        <i class="fas fa-arrow-left"></i> Back to PDF List
+                    </a>
+                </div>
+            `;
+        }
+        
+        function displayError(message) {
+            const detailsContainer = document.getElementById('pdf-details');
+            
+            detailsContainer.innerHTML = `
+                <div style="text-align: center; padding: 50px 0;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #e74c3c; margin-bottom: 20px;"></i>
+                    <h2>${message}</h2>
+                    <a href="../index.html" class="back-button">
+                        <i class="fas fa-arrow-left"></i> Back to PDF List
+                    </a>
+                </div>
+            `;
+        }
+        
+        // Toggle mobile menu
+        const menuIcon = document.getElementById('menu-icon');
+        const navMenu = document.getElementById('nav-menu');
+        
+        if (menuIcon && navMenu) {
+            menuIcon.addEventListener('click', function() {
+                this.classList.toggle('change');
+                navMenu.classList.toggle('active');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Details</title>
+    <link rel="preload" href="../styles.css" as="style">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+    <style>
+        .pdf-details {
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: #1f2c38;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .pdf-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #2c3e50;
+            padding-bottom: 15px;
+        }
+        
+        .pdf-icon-large {
+            font-size: 48px;
+            color: #4eaef3;
+            margin-right: 20px;
+        }
+        
+        .pdf-title-container h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            color: #fff;
+        }
+        
+        .pdf-meta {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+        
+        .pdf-author, .pdf-category {
+            margin-bottom: 10px;
+        }
+        
+        .pdf-description {
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #a3acb8;
+        }
+        
+        .download-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .back-button {
+            display: inline-block;
+            margin-top: 20px;
+            color: #a3acb8;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        
+        .back-button:hover {
+            color: #4eaef3;
+        }
+        
+        .download-btn {
+            padding: 12px 25px;
+            font-size: 18px;
+        }
+        
+        @media (max-width: 768px) {
+            .pdf-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .pdf-icon-large {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            .pdf-meta {
+                flex-direction: column;
+            }
+            
+            .pdf-meta > div {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="logo">
+                <a href="../index.html">PDF Pusthakalaya</a>
+            </div>
+            <div class="menu-icon" id="menu-icon">
+                <div class="bar1"></div>
+                <div class="bar2"></div>
+                <div class="bar3"></div>
+            </div>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="../index.html">Home</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="pdf-details" id="pdf-details">
+            <!-- Content will be loaded by JavaScript -->
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading PDF details...</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 PDF Search & Download. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Get PDF ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const pdfId = urlParams.get('id');
+            
+            if (!pdfId) {
+                displayError("No PDF ID provided.");
+                return;
+            }
+            
+            try {
+                // Load all pages until we find the PDF
+                let pdfData = null;
+                let page = 1;
+                
+                while (page <= 46 && !pdfData) {
+                    try {
+                        const response = await fetch(`../data/page${page}.json`);
+                        if (!response.ok) {
+                            throw new Error(`Failed to load page ${page}`);
+                        }
+                        
+                        const pageData = await response.json();
+                        const foundPdf = pageData.find(pdf => pdf.id === pdfId);
+                        
+                        if (foundPdf) {
+                            pdfData = foundPdf;
+                            break;
+                        }
+                        
+                        page++;
+                    } catch (error) {
+                        console.error(`Error loading page ${page}:`, error);
+                        page++;
+                    }
+                }
+                
+                if (pdfData) {
+                    displayPdfDetails(pdfData);
+                    document.title = `${pdfData.title} - PDF Details`;
+                } else {
+                    displayError("PDF not found.");
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                displayError("An error occurred while loading the PDF details.");
+            }
+        });
+        
+        function displayPdfDetails(pdf) {
+            const detailsContainer = document.getElementById('pdf-details');
+            
+            detailsContainer.innerHTML = `
+                <div class="pdf-header">
+                    <i class="fas fa-file-pdf pdf-icon-large"></i>
+                    <div class="pdf-title-container">
+                        <h1>${pdf.title}</h1>
+                    </div>
+                </div>
+                
+                <div class="pdf-meta">
+                    <div class="pdf-author">
+                        <strong>Author:</strong> ${pdf.author || 'Unknown Author'}
+                    </div>
+                    <div class="pdf-category">
+                        <strong>Category:</strong> ${pdf.category || 'Uncategorized'}
+                    </div>
+                </div>
+                
+                <div class="pdf-description">
+                    <h3>Description:</h3>
+                    <p>${pdf.description || 'No description available.'}</p>
+                </div>
+                
+                <div class="download-section">
+                    <a href="${pdf.link}" class="download-btn" target="_blank">
+                        <i class="fas fa-download"></i> Download from Telegram
+                    </a>
+                </div>
+                
+                <div style="text-align: center;">
+                    <a href="../index.html" class="back-button">
+                        <i class="fas fa-arrow-left"></i> Back to PDF List
+                    </a>
+                </div>
+            `;
+        }
+        
+        function displayError(message) {
+            const detailsContainer = document.getElementById('pdf-details');
+            
+            detailsContainer.innerHTML = `
+                <div style="text-align: center; padding: 50px 0;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #e74c3c; margin-bottom: 20px;"></i>
+                    <h2>${message}</h2>
+                    <a href="../index.html" class="back-button">
+                        <i class="fas fa-arrow-left"></i> Back to PDF List
+                    </a>
+                </div>
+            `;
+        }
+        
+        // Toggle mobile menu
+        const menuIcon = document.getElementById('menu-icon');
+        const navMenu = document.getElementById('nav-menu');
+        
+        menuIcon.addEventListener('click', function() {
+            this.classList.toggle('change');
+            navMenu.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

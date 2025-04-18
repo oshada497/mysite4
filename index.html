@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Search & Download</title>
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+    <script src="pdfs.js"></script>
+    <script src="script.js" defer></script>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="logo">
+                <a href="index.html">PDF Pusthakalaya</a>
+            </div>
+            <div class="menu-icon" id="menu-icon">
+                <div class="bar1"></div>
+                <div class="bar2"></div>
+                <div class="bar3"></div>
+            </div>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="index.html" class="active">Home</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>PDF Search & Download</h1>
+            <p class="subtitle">Find and download PDFs through Telegram</p>
+        </header>
+
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="search-input" placeholder="Search for PDFs...">
+                <i class="fas fa-times clear-icon" id="clear-search"></i>
+                <div class="suggestions-dropdown" id="suggestions-dropdown"></div>
+            </div>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="category-filter-container">
+            <div class="category-filter-header">
+                <h3>Categories</h3>
+                <button id="toggle-categories" class="toggle-categories">
+                    <i class="fas fa-filter"></i>
+                </button>
+            </div>
+            <div class="category-filter" id="category-filter">
+                <button class="category-btn active" data-category="all">All Categories</button>
+                <button class="category-btn" data-category="Originals">Originals</button>
+                <button class="category-btn" data-category="General">General</button>
+                <button class="category-btn" data-category="Romance">Romance</button>
+                <button class="category-btn" data-category="Translation">Translation</button>
+                <button class="category-btn" data-category="Horror">Horror</button>
+                <button class="category-btn" data-category="Short Stories">Short Stories</button>
+                <button class="category-btn" data-category="Science Fiction">Science Fiction</button>
+                <button class="category-btn" data-category="Kids">Kids</button>
+                <button class="category-btn" data-category="History">History</button>
+                <button class="category-btn" data-category="Religion">Religion</button>
+                <button class="category-btn" data-category="Tutorials">Tutorials</button>
+                <button class="category-btn" data-category="Poems">Poems</button>
+                <button class="category-btn" data-category="Audio Books">Audio Books</button>
+                <button class="category-btn" data-category="Other">Other</button>
+            </div>
+        </div>
+
+        <div class="results-info">
+            <p id="results-count"></p>
+            <p id="category-display"></p>
+        </div>
+
+        <div class="results-container" id="results-container">
+            <div class="no-results" id="no-results">
+                <i class="fas fa-file-pdf"></i>
+                <p>No PDFs found. Try a different search term.</p>
+            </div>
+
+            <div class="initial-state" id="initial-state">
+                <i class="fas fa-search"></i>
+                <p>Start typing to search for PDFs</p>
+            </div>
+        </div>
+
+        <div id="all-pdfs-section" class="all-pdfs-section">
+            <div class="all-pdfs-container" id="all-pdfs-container">
+                <!-- PDF cards will be inserted here by JavaScript -->
+            </div>
+            <button id="load-more-btn" class="load-more-btn" onclick="loadMore()">
+                Load More PDFs
+            </button>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h3>Preparing Download...</h3>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 PDF Search & Download. All rights reserved.</p>
+    </footer>
+
+    <!-- AOS is already loaded in the head section -->
+</body>
+</html>

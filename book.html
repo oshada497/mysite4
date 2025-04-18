@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preparing Download...</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #17212b;
+            color: white;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(78, 174, 243, 0.3);
+            border-top-color: #4eaef3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .message {
+            margin-top: 20px;
+            color: #a3acb8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Preparing your book...</h1>
+        <div class="spinner"></div>
+        <p class="message">You will be redirected in 3 seconds...</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            const link = params.get('link');
+
+            if (link) {
+                setTimeout(() => {
+                    window.location.href = link;
+                }, 3000);
+            } else {
+                document.querySelector('.message').textContent = 'Error: No PDF link provided';
+            }
+        });
+    </script>
+</body>
+</html>
